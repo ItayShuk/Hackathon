@@ -30,13 +30,12 @@ def load(path):
 
 
 
-def parser1(path):
+def parser1(df):
     """
     for the primary task
     :param path:
     :return:
     """
-    df = pd.read_csv(path)
     del df["ID"]
     del df["Unnamed: 0"]
     del df["Unnamed: 0.1"]
@@ -46,6 +45,10 @@ def parser1(path):
     del df["IUCR"]
     del df["FBI Code"]
     del df["Description"]
+    del df["Latitude"]
+    del df["Longitude"]
+    del df["Location"]
+    df.replace({"Primary Type": crimes_dict_rev}, inplace=True)
     # dummies = pd.get_dummies(df[''])
     time = df["Date"].apply(lambda x: int(x[11:13]) if x[20:] == "AM" else int(x[11:13]) + 12)
     # print(time)
@@ -56,7 +59,6 @@ def parser1(path):
     noon = df[(df['Time'] >= 14) & (df['Time'] < 22)]
     night = df[((df['Time'] >= 22) & (df['Time'] <= 24) |
                 (df['Time'] >= 0) & (df['Time'] < 6))]
-    df.replace({"Primary Type": crimes_dict_rev}, inplace=True)
     return morning, noon, night
 
 
@@ -95,7 +97,7 @@ def check_data_distribution():
 
 def main():
     # creat_files(r"Dataset_crimes.csv")
-    area_preprocessor()
+    test()
 
 def area_preprocessor():
     df = pd.read_csv("train.csv")
@@ -113,12 +115,15 @@ def area_preprocessor():
 
 def split(df: pd.DataFrame):
     y = df["Primary Type"]
-    X = df.drop("Primary Type")
-    return X, y
+    X = df.drop(["Primary Type"], axis=1)
+    return X.to_numpy(), y.to_numpy()
 
 
-def train_trees(df: str):
+def train_trees(df: pd.DataFrame):
     df_morning, df_noon, df_night = parser1(df)
+    df_morning = df_morning.drop(["Block", "Location Description", "Time"], axis=1)
+    df_noon = df_noon.drop(["Block", "Location Description", "Time"], axis=1)
+    df_night = df_night.drop(["Block", "Location Description", "Time"], axis=1)
     X1, y1 = split(df_morning)
     X2, y2 = split(df_noon)
     X3, y3 = split(df_night)
@@ -134,12 +139,15 @@ def trees_predict(T1, T2, T3, X_test):
 
 def test():
     df = pd.read_csv("train.csv")
+    df = df.dropna()
     df_train = df.sample(frac=0.8)
     df_test = df.drop(df_train.index)
-    X_test, y_test = split(df_test)
     T1, T2, T3 = train_trees(df_train)
     # y_hat = trees_predict(T1, T2, T3, X_test)
-    print(T1.score(X_test, y_test))
+    df1_test, df2_test, df3_test = parser1(df_test)
+    df1_test = df1_test.drop(["Block", "Location Description", "Time"], axis=1)
+    X1_test, y1_test = split(df1_test)
+    print(T1.score(X1_test, y1_test))
 
 
 if __name__ == '__main__':
