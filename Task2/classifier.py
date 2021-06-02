@@ -46,11 +46,6 @@ def parser1(path):
 
 
 
-    # df['date'] = df['date'].astype("str")
-    # df['date'] = df['date'].str.slice(stop=8)
-    # df['date'] = df['date'].astype("int")
-
-
 def parser2(path):
     """
     for the secondary task
