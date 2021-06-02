@@ -2,8 +2,10 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import datetime
-
+from sklearn.tree import DecisionTreeClassifier
 crimes_dict = {0: 'BATTERY', 1: 'THEFT', 2: 'CRIMINAL DAMAGE', 3: 'DECEPTIVE PRACTICE', 4: 'ASSAULT'}
+crimes_dict_rev = {'BATTERY' : 0, 'THEFT': 1, 'CRIMINAL DAMAGE': 2, 'DECEPTIVE PRACTICE': 3, 'ASSAULT': 4}
+
 
 def predict(X):
     pass
@@ -44,12 +46,18 @@ def parser1(path):
     del df["IUCR"]
     del df["FBI Code"]
     del df["Description"]
-    dummies = pd.get_dummies(df[''])
-    print(df)
-
-    # df['date'] = df['date'].astype("str")
-    # df['date'] = df['date'].str.slice(stop=8)
-    # df['date'] = df['date'].astype("int")
+    # dummies = pd.get_dummies(df[''])
+    time = df["Date"].apply(lambda x: int(x[11:13]) if x[20:] == "AM" else int(x[11:13]) + 12)
+    # print(time)
+    del df["Date"]
+    df = df.join(time)
+    df.rename(columns={"Date": "Time"}, inplace=True)
+    morning = df[(df['Time'] >= 6) & (df['Time'] < 14)]
+    noon = df[(df['Time'] >= 14) & (df['Time'] < 22)]
+    night = df[((df['Time'] >= 22) & (df['Time'] <= 24) |
+                (df['Time'] >= 0) & (df['Time'] < 6))]
+    df.replace({"Primary Type": crimes_dict_rev}, inplace=True)
+    return morning, noon, night
 
 
 def parser2(path):
@@ -101,6 +109,37 @@ def area_preprocessor():
     z = df["Beat"].to_numpy()
     plt.scatter(x, y, s=1, c=z)
     plt.show()
+
+
+def split(df: pd.DataFrame):
+    y = df["Primary Type"]
+    X = df.drop("Primary Type")
+    return X, y
+
+
+def train_trees(df: str):
+    df_morning, df_noon, df_night = parser1(df)
+    X1, y1 = split(df_morning)
+    X2, y2 = split(df_noon)
+    X3, y3 = split(df_night)
+    class_weights = {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}
+    model_morning = DecisionTreeClassifier(max_depth=20, min_samples_leaf=5, class_weight=class_weights)
+    model_noon = DecisionTreeClassifier(max_depth=20, min_samples_leaf=5, class_weight=class_weights)
+    model_night = DecisionTreeClassifier(max_depth=20, min_samples_leaf=5, class_weight=class_weights)
+    return model_morning.fit(X1, y1), model_noon.fit(X2, y2), model_night.fit(X3, y3)
+
+
+def trees_predict(T1, T2, T3, X_test):
+    return T1.predict(X_test)
+
+def test():
+    df = pd.read_csv("train.csv")
+    df_train = df.sample(frac=0.8)
+    df_test = df.drop(df_train.index)
+    X_test, y_test = split(df_test)
+    T1, T2, T3 = train_trees(df_train)
+    # y_hat = trees_predict(T1, T2, T3, X_test)
+    print(T1.score(X_test, y_test))
 
 
 if __name__ == '__main__':
