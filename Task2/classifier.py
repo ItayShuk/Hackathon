@@ -12,11 +12,18 @@ def send_police_cars(X):
 
 def load(path):
     df = pd.read_csv(path)
-    # print(df.shape)
+    print(df.shape)
     df = df.dropna()
 
+    # df['date'] = df['date'].astype("str")
+    # df['date'] = df['date'].str.slice(stop=8)
+    # df['date'] = df['date'].astype("int")
+
+
+
+
 def main():
-    load()
+    load(r"Dataset_crimes.csv")
 
 
 
