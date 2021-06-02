@@ -10,7 +10,6 @@ def predict(X):
 def send_police_cars(X):
     pass
 
-
 def load(path):
     pass
     # df = pd.read_csv(path)
@@ -47,6 +46,9 @@ def parser1(path):
 
 
 
+    # df['date'] = df['date'].astype("str")
+    # df['date'] = df['date'].str.slice(stop=8)
+    # df['date'] = df['date'].astype("int")
 
 
 def parser2(path):
@@ -69,12 +71,21 @@ def parser2(path):
 
 
 def main():
-    # load(r"Dataset_crimes.csv")
-    parser1(r"train.csv")
-    # parser2(r"train.csv")
+    load(r"Dataset_crimes.csv")
 
-
-
+def check_data_distribution():
+    df_train = pd.read_csv("train.csv")
+    df_validation = pd.read_csv("validation.csv")
+    df_test = pd.read_csv("test.csv")
+    df_real = pd.read_csv("Dataset_crimes.csv")
+    print(" REAL CSV")
+    print(df_real['Primary Type'].value_counts(normalize=True)* 100)
+    print("TRAIN DATA")
+    print(df_train['Primary Type'].value_counts(normalize=True)* 100)
+    print("VALIDATION DATA")
+    print(df_validation['Primary Type'].value_counts(normalize=True)* 100)
+    print("TEST DATA")
+    print(df_test['Primary Type'].value_counts(normalize=True) * 100)
 
 
 
