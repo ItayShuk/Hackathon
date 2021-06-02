@@ -11,9 +11,23 @@ def send_police_cars(X):
     pass
 
 def load(path):
-    df = pd.read_csv(path)
-    print(df.shape)
-    df = df.dropna()
+    pass
+    # df = pd.read_csv(path)
+    # print(df.shape)
+    # df = df.dropna()
+    # train = df.sample(frac=0.70)
+    # df = df.drop(train.index)
+    # test = df.sample(frac=0.10)
+    # validation = df.drop(test.index)
+    #
+    # train.to_csv("train.csv")
+    # test.to_csv("test.csv")
+    # validation.to_csv("validation.csv")
+
+    #
+    # print(train.shape)
+    # print(test.shape)
+    # print(validation.shape)
 
     # df['date'] = df['date'].astype("str")
     # df['date'] = df['date'].str.slice(stop=8)
@@ -24,6 +38,8 @@ def load(path):
 
 def main():
     load(r"Dataset_crimes.csv")
+
+
 
 
 
