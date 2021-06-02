@@ -47,6 +47,9 @@ def parser1(path):
     dummies = pd.get_dummies(df[''])
     print(df)
 
+    # df['date'] = df['date'].astype("str")
+    # df['date'] = df['date'].str.slice(stop=8)
+    # df['date'] = df['date'].astype("int")
 
 
 def parser2(path):
@@ -84,7 +87,20 @@ def check_data_distribution():
 
 def main():
     # creat_files(r"Dataset_crimes.csv")
-    check_data_distribution()
+    area_preprocessor()
+
+def area_preprocessor():
+    df = pd.read_csv("train.csv")
+    # print(df.shape)
+    df = df.dropna()
+    # print(df.shape)
+    x = df["X Coordinate"].to_numpy()
+    y = df["Y Coordinate"].to_numpy()
+    # z = df["District"].to_numpy()
+    z = df["Block"].apply(lambda x : int(x[0:3])).to_numpy()
+    z = df["Beat"].to_numpy()
+    plt.scatter(x, y, s=1, c=z)
+    plt.show()
 
 
 if __name__ == '__main__':
