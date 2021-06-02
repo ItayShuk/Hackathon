@@ -10,6 +10,7 @@ def predict(X):
 def send_police_cars(X):
     pass
 
+
 def load(path):
     pass
     # df = pd.read_csv(path)
@@ -24,20 +25,54 @@ def load(path):
     # test.to_csv("test.csv")
     # validation.to_csv("validation.csv")
 
-    #
-    # print(train.shape)
-    # print(test.shape)
-    # print(validation.shape)
 
-    # df['date'] = df['date'].astype("str")
-    # df['date'] = df['date'].str.slice(stop=8)
-    # df['date'] = df['date'].astype("int")
+def parser1(path):
+    """
+    for the primary task
+    :param path:
+    :return:
+    """
+    df = pd.read_csv(path)
+    del df["ID"]
+    del df["Unnamed: 0"]
+    del df["Unnamed: 0.1"]
+    del df["Case Number"]
+    del df["Year"]
+    del df["Updated On"]
+    del df["IUCR"]
+    del df["FBI Code"]
+    del df["Description"]
 
+    print(df)
+
+
+
+
+
+def parser2(path):
+    """
+    for the secondary task
+    :param path:
+    :return:
+    """
+    df = pd.read_csv(path)
+    del df["ID"]
+    del df["Unnamed: 0"]
+    del df["Unnamed: 0.1"]
+    del df["Case Number"]
+    del df["Year"]
+    del df["Updated On"]
+    print(df)
+
+    return
 
 
 
 def main():
-    load(r"Dataset_crimes.csv")
+    # load(r"Dataset_crimes.csv")
+    parser1(r"train.csv")
+    # parser2(r"train.csv")
+
 
 
 
