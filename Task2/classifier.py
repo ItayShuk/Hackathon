@@ -38,8 +38,21 @@ def load(path):
 
 def main():
     load(r"Dataset_crimes.csv")
+    check_data_distribution()
 
-
+def check_data_distribution():
+    df_train = pd.read_csv("train.csv")
+    df_validation = pd.read_csv("validation.csv")
+    df_test = pd.read_csv("test.csv")
+    df_real = pd.read_csv("Dataset_crimes.csv")
+    print(" REAL CSV")
+    print(df_real['Primary Type'].value_counts(normalize=True)* 100)
+    print("TRAIN DATA")
+    print(df_train['Primary Type'].value_counts(normalize=True)* 100)
+    print("VALIDATION DATA")
+    print(df_validation['Primary Type'].value_counts(normalize=True)* 100)
+    print("TEST DATA")
+    print(df_test['Primary Type'].value_counts(normalize=True) * 100)
 
 
 
