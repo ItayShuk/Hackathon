@@ -26,6 +26,8 @@ def load(path):
     print(df)
 
 
+
+
 def parser1(path):
     """
     for the primary task
@@ -43,7 +45,6 @@ def parser1(path):
     del df["FBI Code"]
     del df["Description"]
     dummies = pd.get_dummies(df[''])
-
     print(df)
 
 
@@ -67,9 +68,6 @@ def parser2(path):
 
 
 
-def main():
-    load(r"Dataset_crimes.csv")
-
 def check_data_distribution():
     df_train = pd.read_csv("train.csv")
     df_validation = pd.read_csv("validation.csv")
@@ -84,7 +82,20 @@ def check_data_distribution():
     print("TEST DATA")
     print(df_test['Primary Type'].value_counts(normalize=True) * 100)
 
+def main():
+    # creat_files(r"Dataset_crimes.csv")
+    check_data_distribution()
 
 
 if __name__ == '__main__':
     main()
+
+def creat_files(path):
+    df = pd.read_csv(path)
+    train = df.sample(frac=0.70)
+    df = df.drop(train.index)
+    test = df.sample(frac=0.10)
+    valid = df.drop(test.index)
+    test.to_csv("test.csv")
+    train.to_csv("train.csv")
+    valid.to_csv("validation.csv")
