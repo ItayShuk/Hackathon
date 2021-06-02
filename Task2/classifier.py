@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import datetime
 
 crimes_dict = {0: 'BATTERY', 1: 'THEFT', 2: 'CRIMINAL DAMAGE', 3: 'DECEPTIVE PRACTICE', 4: 'ASSAULT'}
 
@@ -11,18 +12,18 @@ def send_police_cars(X):
     pass
 
 def load(path):
-    pass
-    # df = pd.read_csv(path)
-    # print(df.shape)
-    # df = df.dropna()
-    # train = df.sample(frac=0.70)
-    # df = df.drop(train.index)
-    # test = df.sample(frac=0.10)
-    # validation = df.drop(test.index)
-    #
-    # train.to_csv("train.csv")
-    # test.to_csv("test.csv")
-    # validation.to_csv("validation.csv")
+    df = pd.read_csv(path)
+    print(df.shape)
+    df = df.dropna()
+    date_copy = df["Date"].apply(lambda x: x[:10])
+    # month_df = df["Date"].apply(lambda x: x[0:2])
+    date_df = date_copy.apply(lambda x: datetime.date(int(x[7:]), int(x[0:2]), int(x[3:5])).weekday())
+    date_df= date_df.apply(lambda x: "weekend" if 5 <= x <= 6 else "weekday")
+    day_dummies = pd.get_dummies(date_df)
+    # month_dummies = pd.get_dummies(month_df, prefix="month")
+    df = df.join(day_dummies)
+    # df = df.join(month_dummies)
+    print(df)
 
 
 def parser1(path):
@@ -41,6 +42,7 @@ def parser1(path):
     del df["IUCR"]
     del df["FBI Code"]
     del df["Description"]
+    dummies = pd.get_dummies(df[''])
 
     print(df)
 
