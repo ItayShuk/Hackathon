@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import datetime
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import BaggingClassifier
 crimes_dict = {0: 'BATTERY', 1: 'THEFT', 2: 'CRIMINAL DAMAGE', 3: 'DECEPTIVE PRACTICE', 4: 'ASSAULT'}
 crimes_dict_rev = {'BATTERY' : 0, 'THEFT': 1, 'CRIMINAL DAMAGE': 2, 'DECEPTIVE PRACTICE': 3, 'ASSAULT': 4}
 
@@ -61,6 +62,20 @@ def parser1(df):
                 (df['Time'] >= 0) & (df['Time'] < 6))]
     return morning, noon, night
 
+def parser2(path):
+    """
+    for the secondary task
+    :param path:
+    :return:
+    """
+    df = pd.read_csv(path)
+    del df["ID"]
+    del df["Unnamed: 0"]
+    del df["Unnamed: 0.1"]
+    del df["Case Number"]
+    del df["Year"]
+    del df["Updated On"]
+    print(df)
 
 def parser2(path):
     """
@@ -147,7 +162,7 @@ def test():
     df1_test, df2_test, df3_test = parser1(df_test)
     df1_test = df1_test.drop(["Block", "Location Description", "Time"], axis=1)
     X1_test, y1_test = split(df1_test)
-    print(T1.score(X1_test, y1_test))
+    # print(T1.score(X1_test, y1_test))
 
 
 if __name__ == '__main__':
@@ -162,3 +177,118 @@ def creat_files(path):
     test.to_csv("test.csv")
     train.to_csv("train.csv")
     valid.to_csv("validation.csv")
+
+def creat_files(path):
+    df = pd.read_csv(path)
+    train = df.sample(frac=0.70)
+    df = df.drop(train.index)
+    test = df.sample(frac=0.10)
+    valid = df.drop(test.index)
+    test.to_csv("test.csv")
+    train.to_csv("train.csv")
+    valid.to_csv("validation.csv")
+
+def rotem():
+    df = pd.read_csv("train.csv")
+    morning = df[(df['Date'] >= 0) and (df['Date'] < 8)]
+    noon = df[(df['Date'] >= 8) and (df['Date'] < 16)]
+    night = df[(df['Date'] >= 16) and (df['Date'] < 24)]
+
+    pass
+
+class Bagger:
+
+    morning_df = None
+    noon_df = None
+    night_df = None
+
+    morning_hat = None
+    noon_hat = None
+    night_hat = None
+
+    morning_bagger = None
+    noon_bagger = None
+    night_bagger = None
+
+    def __init__(self, morning_df, morning_hat, noon_df, noon_hat, night_df, night_hat):
+
+        self.morning_df = morning_df
+        self.noon_df = noon_df
+        self.night_df = night_df
+
+        self.morning_hat = morning_hat
+        self.noon_hat = noon_hat
+        self.night_hat = night_hat
+
+    def train_committee(self, T, max_features, max_depth, min_samples_leaf):
+        class_weights = {0: 1, 1: 1, 2: 1, 3: 1, 4: 1}
+
+        self.morning_bagger = BaggingClassifier(DecisionTreeClassifier(max_depth=max_depth, min_samples_leaf=min_samples_leaf, class_weight=class_weights),
+                                                T, max_samples=self.morning_df.shape[0], max_features=max_features, bootstrap=True).fit(self.morning_df, self.morning_hat)
+
+        self.noon_bagger = BaggingClassifier(DecisionTreeClassifier(max_depth=max_depth, min_samples_leaf=min_samples_leaf, class_weight=class_weights),
+                                             T,  max_samples=self.noon_df.shape[0], max_features=max_features, bootstrap=True).fit(self.noon_df, self.noon_hat)
+
+        self.night_bagger = BaggingClassifier(DecisionTreeClassifier(max_depth=max_depth,min_samples_leaf=min_samples_leaf, class_weight=class_weights),
+                                              T,  max_samples=self.night_df.shape[0], max_features=max_features, bootstrap=True).fit(self.night_df, self.night_hat)
+
+
+def get_data_rotem():
+    df = pd.read_csv("train.csv")
+    df = df.dropna()
+    df_train = df.sample(frac=0.8)
+    df_test = df.drop(df_train.index)
+
+    df_morning, df_noon, df_night = parser1(df)
+    df_morning = df_morning.drop(["Block", "Location Description", "Time"], axis=1)
+    df_noon = df_noon.drop(["Block", "Location Description", "Time"], axis=1)
+    df_night = df_night.drop(["Block", "Location Description", "Time"], axis=1)
+    X1, y1 = split(df_morning)
+    X2, y2 = split(df_noon)
+    X3, y3 = split(df_night)
+
+    df1_test, df2_test, df3_test = parser1(df_test)
+    df1_test = df1_test.drop(["Block", "Location Description", "Time"], axis=1)
+    df2_test = df2_test.drop(["Block", "Location Description", "Time"], axis=1)
+    df3_test = df3_test.drop(["Block", "Location Description", "Time"], axis=1)
+
+    X1_test, y1_test = split(df1_test)
+    X2_test, y2_test = split(df2_test)
+    X3_test, y3_test = split(df3_test)
+
+
+
+    all_features = X1.shape[1]
+    T = [5, 10, 15, 20, 50, 100, 200]
+    max_samples = [2000, 3000, 4000] #6360 morning, 7500 noon, 4817 night
+    max_features = [3, 4, 5, 6, 7, all_features]
+    max_depth = [5, 10, 15, 20, 25]
+    min_samples_leaf = np.arange(5, 500, step=10)
+    counter = 0
+    for t in T:
+        for m in max_features:
+            plt.figure()
+            morning_score = []
+            noon_score = []
+            night_score = []
+            counter += 1
+            for d in max_depth:
+
+                my_bagger = Bagger(X1, y1, X2, y2, X3, y3)
+                my_bagger.train_committee(t, m, d, 30)
+                morning_score.append(my_bagger.morning_bagger.score(X1_test, y1_test))
+                noon_score.append(my_bagger.noon_bagger.score(X2_test, y2_test))
+                night_score.append(my_bagger.night_bagger.score(X3_test, y3_test))
+            plt.plot(max_depth, morning_score, label="Morning bagger")
+            plt.plot(max_depth, noon_score, label="Noon bagger")
+            plt.plot(max_depth, night_score, label="Night bagger")
+            plt.xlabel("max depth")
+            plt.ylabel("score")
+            plt.title("Score of baggers with committee T = " + str(t) + " and max_features = " + str(m))
+            plt.legend()
+            image_name = str(m) + "features" + str(counter)
+            plt.savefig(image_name + "png", dpi=300, bbox_inches='tight')
+            plt.show()
+
+get_data_rotem()
+
